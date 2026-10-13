@@ -1,0 +1,18 @@
+# Sonatola — Apache fallback. If host ignores .htaccess, use ?route= fallback (see index.php).
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# Deny access to sensitive files if docroot is misconfigured
+<FilesMatch "^(\.env|composer\.(json|lock))$">
+  Require all denied
+</FilesMatch>
+
+# Uploads should never execute PHP
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+AddType text/plain php phtml php3 php4 php5
