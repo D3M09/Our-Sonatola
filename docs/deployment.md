@@ -29,8 +29,13 @@ Assumes: Apache + PHP 8.1+, MySQL/MariaDB, `public_html` writable, no root.
 php database/migrate.php --dry-run
 php database/migrate.php
 php database/migrate.php --seeds   # fresh install only
-php scripts/create_admin.php --name="..." --email="..." --password="...(12+ chars)"
+php scripts/create_admin.php --name="..." --email="..."   # prompts for the password (hidden, min 12 chars)
 ```
+
+The first-admin password is entered twice at a hidden prompt (minimum 12 characters)
+and is never passed as a command-line argument. A POSIX interactive terminal with
+`stty` is required; on Windows use WSL or another POSIX terminal (e.g. Git Bash).
+Non-interactive execution fails closed and creates no account.
 
 ## 5. Verify
 

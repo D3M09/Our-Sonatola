@@ -54,16 +54,48 @@ function registerRoutes(Router $r, PDO $pdo): void
     $r->get('/api/v1/admin/permissions', [$adminU, 'listPermissions']);
     $r->get('/api/v1/admin/audit-logs', [$adminU, 'auditLogs']);
 
-    // Minimal public homepage (HTML, no login)
+    // Static SPA shell (no PHP templates, no DB read; data via /api/v1 JSON).
+    // Security headers for local dev: no HSTS (HTTP), no 'unsafe-inline'.
     $r->get('/', function (Request $req, array $p): void {
+        if (!headers_sent()) {
+            header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'");
+            header('X-Content-Type-Options: nosniff');
+            header('Referrer-Policy: same-origin');
+            header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+        }
         Response::html(
-            '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-            . '<title>Sonatola Upazila Digital Platform</title></head><body style="font-family:system-ui;margin:2rem">'
-            . '<h1>Sonatola Upazila Digital Platform</h1>'
-            . '<p>Backend API is running. Public endpoints under <code>/api/v1</code>.</p>'
-            . '<ul><li><a href="/api/v1/health">Health</a></li><li><a href="/api/v1/news">News</a></li>'
-            . '<li><a href="/api/v1/notices">Notices</a></li><li><a href="/api/v1/services">Services</a></li></ul>'
-            . '<p>No registration required to view public information.</p></body></html>'
+            '<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+            . '<title data-i18n="site.name">Sonatola</title>'
+            . '<link rel="stylesheet" href="/css/site.css?v=4C1">'
+            . '<script type="module" src="/js/app.js?v=4C1"></script>'
+            . '<!-- CAPACITOR: admin panel JS is web-only (Phase C) — do NOT bundle any future public/js/admin*.js into the Capacitor Public+Citizen build -->'
+            . '</head><body>'
+            . '<a class="skip-link" href="#main" data-i18n="a11y.skip"></a>'
+            . '<header class="site-header"><div class="container header-inner">'
+            . '<a class="brand" href="#/" data-route="home"><img class="brand-logo" src="/img/logo.svg" alt="" data-i18n-alt="site.logo_alt" aria-hidden="true"><span class="brand-name" data-i18n="site.name"></span></a>'
+            . '<nav class="site-nav" aria-label="primary"><ul>'
+            . '<li><a href="#/news" data-route="news" data-i18n="nav.news"></a></li>'
+            . '<li><a href="#/notices" data-route="notices" data-i18n="nav.notices"></a></li>'
+            . '<li><a href="#/services" data-route="services" data-i18n="nav.services"></a></li>'
+            . '<li><a href="#/unions" data-route="unions" data-i18n="nav.unions"></a></li>'
+            . '</ul></nav>'
+            . '<nav class="auth-nav" aria-label="account"><ul id="auth-nav"></ul></nav>'
+            . '<button id="locale-toggle" class="locale-toggle" type="button" data-i18n="locale.toggle_label" data-i18n-aria-label="locale.toggle_aria"></button>'
+            . '</div></header>'
+            . '<main id="main"><div id="view-home"><section class="hero"><div class="container">'
+            . '<h1 data-i18n="home.hero_title"></h1><p class="hero-sub" data-i18n="home.hero_subtitle"></p>'
+            . '</div></section>'
+            . '<section id="news" class="section"><div class="container"><h2 data-i18n="news.title"></h2>'
+            . '<p class="section-status" data-section="news" role="status"></p><div class="cards" data-list="news"></div></div></section>'
+            . '<section id="notices" class="section"><div class="container"><h2 data-i18n="notices.title"></h2>'
+            . '<p class="section-status" data-section="notices" role="status"></p><ul class="notice-list" data-list="notices"></ul></div></section>'
+            . '<section id="services" class="section"><div class="container"><h2 data-i18n="links.services_title"></h2>'
+            . '<div class="cards"><article class="card"><p data-i18n="links.services_text"></p></article></div></div></section>'
+            . '<section id="unions" class="section"><div class="container"><h2 data-i18n="links.unions_title"></h2>'
+            . '<div class="cards"><article class="card"><p data-i18n="links.unions_text"></p></article></div></div></section>'
+            . '</div><div id="view" hidden></div></main>'
+            . '<footer class="site-footer"><div class="container"><p data-i18n="footer.copyright"></p><p data-i18n="footer.contact"></p></div></footer>'
+            . '</body></html>'
         );
     });
 }

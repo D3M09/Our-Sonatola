@@ -8,6 +8,7 @@ Digital public-service platform for Sonatola Upazila, Bogura. Plain PHP 8.1+ + M
 
 ```
 public/index.php      # front controller (docroot must point here)
+public/js/            # SPA: pages/ (public site) + admin/ (web-only admin panel)
 src/
   bootstrap.php       # autoload, .env, secure session, error handler, CORS
   routes.php          # /api/v1 table (no business logic here)
@@ -18,7 +19,7 @@ src/
   Repositories/       # PDO prepared statements only
 config/config.php     # .env loader (no secrets in repo)
 database/
-  migrations/001..010 # versioned SQL (InnoDB, utf8mb4, FKs)
+  migrations/001..011 # versioned SQL (InnoDB, utf8mb4, FKs)
   seeds/              # roles/permissions, settings (online_enabled=0), Sonatola base
   migrate.php         # safe runner with --dry-run + destructive guard
   schema.md / import-official-data.md
@@ -45,10 +46,16 @@ cp .env.example .env   # fill DB_* (placeholders only in repo)
 php database/migrate.php --dry-run
 php database/migrate.php
 php database/migrate.php --seeds   # fresh install only
-php scripts/create_admin.php --name="Admin" --email="admin@example.com" --password="0123456789abCD..(12+ chars)"
+php scripts/create_admin.php --name="Admin" --email="admin@example.com"   # prompts for the password (hidden, min 12 chars)
 php -S localhost:8080 -t public
 curl localhost:8080/api/v1/health
 ```
+
+Admin bootstrap: `scripts/create_admin.php` reads the password at a hidden interactive
+terminal prompt — it is entered twice and must be at least 12 characters. The password
+is never passed as a command-line argument. A POSIX interactive terminal with `stty`
+is required (echo is disabled while typing); on Windows use WSL or another POSIX terminal
+(e.g. Git Bash). Non-interactive execution fails closed and creates no account.
 
 Without DB (current state): syntax + unit tests still run; DB tests report `SKIPPED-no-db` (never fabricated).
 
@@ -74,10 +81,11 @@ Covers: connectivity/migrations (live, skipped w/o DB), session/token hashing, i
 
 ## Limitations / remaining
 
-- No live DB run yet (no credentials) — `test_db_live` + migration apply untested; run `migrate.php` when DB available.
+- Live DB runs are local/test only so far (`sonatola_test`, 11 migrations applied); applying migrations on the target production host is still unverified.
 - Applications table + `applications.online_enabled=0` ready but no public endpoints (by design, disabled by default).
 - Notifications/device-token tables ready; push delivery not implemented (needs FCM config decision).
-- No admin HTML UI yet — API-first per scope; minimal public homepage only.
+- Admin UI (`public/js/admin/*`): dashboard, complaints queue/detail, news, notices, roles, users, and audit log. Web-only — excluded from the Capacitor build.
+- Localization: agent-authored strings in `public/js/locales/{en,bn}.json` carry a `_TODO` suffix pending human review; `scripts/check-todo.sh` reports them and currently exits 1 (production deploy gated until reviewed).
 - File serving endpoint (`GET /files/{id}` with authz) pending; uploads stored privately, metadata in `media_files`.
 - Multi-node rate limiting uses tmp files; replace with DB table for clustered prod.
 - Target hosting unknown — assumed PHP 8.1 + Apache + `public/` docroot; confirm before launch.

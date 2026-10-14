@@ -160,7 +160,7 @@ DB-dependent behavior is marked **unverified-live** where applicable.
    `SELECT version FROM schema_migrations` shows 001..011.
 4. `php database/migrate.php --seeds` → rerun twice to confirm idempotency
    (`INSERT IGNORE` / `ON DUPLICATE`).
-5. `php scripts/create_admin.php --name --email --password(12+)` → login,
+5. `php scripts/create_admin.php --name --email` (password entered twice at a hidden prompt, 12+) → login,
    `GET /api/v1/me`, complaint submit (session without CSRF → 403; with → 201;
    Bearer → 201), cross-union 403 checks, expired-notice hiding, invalid
    priority/status 422s, last-admin block, reset-request generic 200 with zero

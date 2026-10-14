@@ -83,12 +83,16 @@ mysql -h $DB_HOST -u $DB_USER -p $DB_NAME -e "SELECT COUNT(*) FROM users;"
 
 ## 5. First admin (exact CLI args from `scripts/create_admin.php`)
 
-Flags (verified): `--name, --email, --password, --phone (optional), --force`.
+Flags (verified): `--name, --email, --phone (optional), --force`. The password is NOT a
+flag — it is entered twice at a hidden interactive prompt (minimum 12 characters) and is
+never passed as a command-line argument. Requires an interactive POSIX terminal with
+`stty` (on Windows use WSL or another POSIX terminal); non-interactive stdin fails closed
+with no account created.
 
 ```bash
-php scripts/create_admin.php --name="Test Admin" --email="admin@example.com" --password="0123456789abCD..(12+ chars)"
+php scripts/create_admin.php --name="Test Admin" --email="admin@example.com"   # prompts (hidden) twice
 # expect: "Super admin created: id=…"
-php scripts/create_admin.php --name="Second" --email="second@example.com" --password="0123456789abCD..(12+ chars)"
+php scripts/create_admin.php --name="Second" --email="second@example.com"   # prompts (hidden) twice
 # expect refusal: super_admin already exists (re-run with --force to override)
 ```
 
